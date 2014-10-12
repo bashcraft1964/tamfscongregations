@@ -28,59 +28,59 @@ var App = function(){
   
   //default response with info about app URLs
   self.routes['root'] = function(req, res){ 
-    res.send('You have come to the park apps web service. All the web services are at /ws/parks*. \
-      For example /ws/parks will return all the parks in the system in a JSON payload. \
+    res.send('You have come to the tamfs congregations web service. All the web services are at /ws/congregations*. \
+      For example /ws/congregations will return all the congregations in the system in a JSON payload. \
       Thanks for stopping by and have a nice day'); 
   };
 
-  //returns all the parks in the collection
-  self.routes['returnAllParks'] = function(req, res){
-    self.db.collection('parkpoints').find().toArray(function(err, names) {
+  //returns all the congregations in the collection
+  self.routes['returnAllCongregations'] = function(req, res){
+    self.db.collection('congregationpoints').find().toArray(function(err, names) {
       res.header("Content-Type:","application/json");
       res.end(JSON.stringify(names));
     });
   };
 
-  //find a single park by passing in the objectID to the URL
-  self.routes['returnAPark'] = function(req, res){
+  //find a single congregation by passing in the objectID to the URL
+  self.routes['returnACongregation'] = function(req, res){
       var BSON = mongodb.BSONPure;
-      var parkObjectID = new BSON.ObjectID(req.params.id);
-      self.db.collection('parkpoints').find({'_id':parkObjectID}).toArray(function(err, names){
+      var congregationObjectID = new BSON.ObjectID(req.params.id);
+      self.db.collection('congregationpoints').find({'_id':congregationObjectID}).toArray(function(err, names){
         res.header("Content-Type:","application/json"); 
         res.end(JSON.stringify(names));
       });
   }
 
-  //find parks near a certain lat and lon passed in as query parameters (near?lat=45.5&lon=-82)
-  self.routes['returnParkNear'] = function(req, res){
+  //find congregations near a certain lat and lon passed in as query parameters (near?lat=45.5&lon=-82)
+  self.routes['returnCongregationNear'] = function(req, res){
     //in production you would do some sanity checks on these values before parsing and handle the error if they don't parse
     var lat = parseFloat(req.query.lat);
     var lon = parseFloat(req.query.lon);
-    self.db.collection('parkpoints').find( {"pos" : {$near: [lon,lat]}}).toArray(function(err,names){
+    self.db.collection('congregationpoints').find( {"pos" : {$near: [lon,lat]}}).toArray(function(err,names){
       res.header("Content-Type:","application/json");
       res.end(JSON.stringify(names));
     });
   };
 
-  //find parks near a certain park name, lat and lon (name?lon=10&lat=10)
-  self.routes['returnParkNameNear'] = function(req, res){
+  //find congregations near a certain congregation name, lat and lon (name?lon=10&lat=10)
+  self.routes['returnCongregationNameNear'] = function(req, res){
     //in production you would do some sanity checks on these values before parsing and handle the error if they don't parse
     var lat = parseFloat(req.query.lat);
     var lon = parseFloat(req.query.lon);
     var name = req.params.name;
-    self.db.collection('parkpoints').find( {"Name" : {$regex : name, $options : 'i'}, "pos" : { $near : [lon,lat]}}).toArray(function(err,names){
+    self.db.collection('congregationpoints').find( {"name" : {$regex : name, $options : 'i'}, "pos" : { $near : [lon,lat]}}).toArray(function(err,names){
       res.header("Content-Type:","application/json");
       res.end(JSON.stringify(names));
     });
   };
 
-  //saves new park
-  self.routes['postAPark'] = function(req, res){
+  //saves new congregation
+  self.routes['postACongregation'] = function(req, res){
     //in production you would do some sanity checks on these values before parsing and handle the error if they don't parse
     var lat = parseFloat(req.body.lat);
     var lon = parseFloat(req.body.lon);
     var name = req.body.name;
-    self.db.collection('parkpoints').insert( {'Name' : name, 'pos' : [lon,lat]}, {w:1}, function(err, records){
+    self.db.collection('congregationpoints').insert( {'name' : name, 'pos' : [lon,lat]}, {w:1}, function(err, records){
     if (err) { throw err; }
     res.end('success');
     });
@@ -103,11 +103,11 @@ var App = function(){
   //define all the url mappings
   self.app.get('/health', self.routes['health']);
   self.app.get('/', self.routes['root']);
-  self.app.get('/ws/parks', self.routes['returnAllParks']);
-  self.app.get('/ws/parks/park/:id', self.routes['returnAPark']);
-  self.app.get('/ws/parks/near', self.routes['returnParkNear']);
-  self.app.get('/ws/parks/name/near/:name', self.routes['returnParkNameNear']);
-  self.app.post('/ws/parks/park', self.routes['postAPark']);
+  self.app.get('/ws/congregations', self.routes['returnAllCongregations']);
+  self.app.get('/ws/congregations/congregation/:id', self.routes['returnACongregation']);
+  self.app.get('/ws/congregations/near', self.routes['returnCongregationNear']);
+  self.app.get('/ws/congregations/name/near/:name', self.routes['returnCongregationNameNear']);
+  self.app.post('/ws/congregations/congregation', self.routes['postACongregation']);
 
   // Logic to open a database connection. We are going to call this outside of app so it is available to all our functions inside.
   self.connectDb = function(callback){
